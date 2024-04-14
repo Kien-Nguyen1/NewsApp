@@ -18,9 +18,9 @@
         android:id="@+id/tv_title_item"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
+        android:layout_marginStart="10dp"
         android:ellipsize="end"
-        android:maxLines="3"
+        android:maxLines="2"
         android:text="Title"
         android:textColor="@color/black"
         android:textSize="15sp"
@@ -33,34 +33,14 @@
         android:id="@+id/tv_des_item"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="10dp"
-        android:layout_marginTop="15dp"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="5dp"
         android:ellipsize="end"
-        android:maxLines="5"
+        android:maxLines="3"
         android:text="Description"
         android:textColor="@color/black"
         app:layout_constraintLeft_toRightOf="@+id/img_article_item"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/tv_title_item" />
-
-    <TextView
-        android:id="@+id/tv_source_item"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="Source: "
-        android:textColor="@color/black"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/img_article_item" />
-
-    <TextView
-        android:id="@+id/tv_published_at_item"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="Published At: "
-        android:textColor="@color/black"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/tv_source_item" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

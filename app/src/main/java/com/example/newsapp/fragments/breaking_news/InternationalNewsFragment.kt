@@ -1,12 +1,12 @@
-package com.example.newsapp.fragments
+package com.example.newsapp.fragments.breaking_news
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AbsListView
 import android.widget.Toast
+import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -14,14 +14,18 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.newsapp.R
 import com.example.newsapp.activities.MainActivity
 import com.example.newsapp.adapter.NewsAdapter
-import com.example.newsapp.databinding.FragmentBreakingNewsBinding
+import com.example.newsapp.databinding.FragmentInternaltionalNewsBinding
 import com.example.newsapp.util.Constants.Companion.QUERY_PAGE_SIZE
 import com.example.newsapp.util.Resource
 import com.example.newsapp.viewmodels.NewsViewModel
 
-class BreakingNewsFragment : Fragment(R.layout.fragment_breaking_news) {
+class InternationalNewsFragment : Fragment(R.layout.fragment_internaltional_news) {
 
-    private lateinit var binding: FragmentBreakingNewsBinding
+    companion object {
+        fun newInstance(): InternationalNewsFragment = InternationalNewsFragment()
+    }
+
+    private lateinit var binding: FragmentInternaltionalNewsBinding
     private lateinit var newsViewModel: NewsViewModel
     private lateinit var newsAdapter: NewsAdapter
 
@@ -34,7 +38,7 @@ class BreakingNewsFragment : Fragment(R.layout.fragment_breaking_news) {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?,
     ): View? {
-       binding = FragmentBreakingNewsBinding.inflate(inflater, container, false)
+       binding = FragmentInternaltionalNewsBinding.inflate(inflater, container, false)
         return binding.root
     }
 
@@ -159,7 +163,7 @@ class BreakingNewsFragment : Fragment(R.layout.fragment_breaking_news) {
         binding.rvBreakingNews.apply {
             adapter = newsAdapter
             layoutManager = LinearLayoutManager(activity)
-            addOnScrollListener(this@BreakingNewsFragment.scrollListener)
+            addOnScrollListener(this@InternationalNewsFragment.scrollListener)
         }
     }
 }
