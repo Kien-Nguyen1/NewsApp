@@ -1,11 +1,12 @@
 package com.example.newsapp.activities
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.example.newsapp.R
+import com.example.newsapp.api.RetrofitInstance
 import com.example.newsapp.database.ArticleDatabase
 import com.example.newsapp.databinding.ActivityMainBinding
 import com.example.newsapp.repository.NewsRepository
@@ -29,7 +30,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setUpViewModel() {
-        val newsRepository = NewsRepository(ArticleDatabase(this))
+        val api = RetrofitInstance.api
+        val newsRepository = NewsRepository(ArticleDatabase(this), api)
         val newsViewModelProviderFactory = NewsViewModelProviderFactory(application, newsRepository)
         newsViewModel = ViewModelProvider(this, newsViewModelProviderFactory)[NewsViewModel::class.java]
     }

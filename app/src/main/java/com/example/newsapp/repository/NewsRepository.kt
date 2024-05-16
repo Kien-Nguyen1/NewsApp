@@ -1,20 +1,19 @@
 package com.example.newsapp.repository
 
-import com.example.newsapp.api.RetrofitInstance
+import com.example.newsapp.api.NewsApi
 import com.example.newsapp.database.ArticleDatabase
-import com.example.newsapp.models.Article
+import com.example.newsapp.models.NewsResponseItem
 
-class NewsRepository(private val database: ArticleDatabase) {
+class NewsRepository(private val database: ArticleDatabase, private val api: NewsApi) {
 
-    suspend fun getBreakingNews(countryCode : String, pageNumber : Int) =
-        RetrofitInstance.api.getBreakingNews(countryCode, pageNumber)
+    suspend fun getNews(category: String, page: Int, pageSize: Int) =
+        api.getNews(category, page, pageSize)
 
-    suspend fun searchNews(searchQuery : String, pageNumber: Int) =
-        RetrofitInstance.api.searchNews(searchQuery, pageNumber)
+    suspend fun searchNews(query: String) = api.searchNews(query)
 
-    suspend fun saveArticle(article: Article) = database.articleDao().saveArticle(article)
+    suspend fun saveArticle(article: NewsResponseItem) = database.articleDao().saveArticle(article)
 
-    suspend fun deleteArticle(article: Article) = database.articleDao().deleteArticle(article)
+    suspend fun deleteArticle(article: NewsResponseItem) = database.articleDao().deleteArticle(article)
 
     fun getSavedArticles() = database.articleDao().getSavedArticles()
 }

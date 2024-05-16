@@ -1,16 +1,15 @@
 package com.example.newsapp.fragments
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebViewClient
-import androidx.navigation.fragment.navArgs
+import androidx.fragment.app.Fragment
 import com.example.newsapp.R
 import com.example.newsapp.activities.MainActivity
-import com.example.newsapp.adapter.NewsAdapter
 import com.example.newsapp.databinding.FragmentArticleBinding
+import com.example.newsapp.models.NewsResponseItem
 import com.example.newsapp.viewmodels.NewsViewModel
 import com.google.android.material.snackbar.Snackbar
 
@@ -18,12 +17,11 @@ class ArticleFragment : Fragment(R.layout.fragment_article) {
 
     private lateinit var binding: FragmentArticleBinding
     private lateinit var newsViewModel: NewsViewModel
-
-    private val args : ArticleFragmentArgs by navArgs()
+    private lateinit var article: NewsResponseItem
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?,
+        savedInstanceState: Bundle?
     ): View? {
         binding = FragmentArticleBinding.inflate(inflater, container, false)
         return binding.root
@@ -32,21 +30,21 @@ class ArticleFragment : Fragment(R.layout.fragment_article) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         newsViewModel = (activity as MainActivity).newsViewModel
-        val article = args.article
+
+        // Sử dụng Safe Args để lấy article
+        arguments?.let {
+            val args = ArticleFragmentArgs.fromBundle(it)
+            article = args.article
+        }
+
         binding.webViewArticle.apply {
             webViewClient = WebViewClient()
-            article?.let {
-                it.url?.let { url ->
-                    loadUrl(url)
-                }
-            }
+            article.detailUrl?.let { loadUrl(it) }
         }
 
         binding.fabSave.setOnClickListener {
-            article?.let {
-                newsViewModel.saveArticle(it)
-                Snackbar.make(view, "Article Saved Successfully!", Snackbar.LENGTH_SHORT).show()
-            }
+            newsViewModel.saveArticle(article)
+            Snackbar.make(view, "Article Saved Successfully!", Snackbar.LENGTH_SHORT).show()
         }
     }
 }
