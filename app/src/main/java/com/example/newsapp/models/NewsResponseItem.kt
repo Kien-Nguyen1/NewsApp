@@ -7,7 +7,7 @@ import java.io.Serializable
 @Entity(tableName = "articles")
 data class NewsResponseItem(
     @PrimaryKey
-    val id: String,
+    val id: Int,
     val description: String? = null,
     val detailUrl: String? = null,
     val fullAvatarUrl: String? = null,
