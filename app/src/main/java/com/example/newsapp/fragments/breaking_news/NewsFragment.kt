@@ -13,6 +13,7 @@ import com.example.newsapp.R
 import com.example.newsapp.activities.MainActivity
 import com.example.newsapp.adapter.NewsAdapter
 import com.example.newsapp.databinding.FragmentNewsBinding
+import com.example.newsapp.util.Constants.Companion.ARG_CATEGORY
 import com.example.newsapp.util.Constants.Companion.KEY_ARTICLE
 import com.example.newsapp.util.Resource
 import com.example.newsapp.viewmodels.NewsViewModel
@@ -24,8 +25,6 @@ class NewsFragment : Fragment(R.layout.fragment_news) {
     private lateinit var newsAdapter: NewsAdapter
 
     companion object {
-        private const val ARG_CATEGORY = "category"
-
         fun newInstance(category: String): NewsFragment {
             val fragment = NewsFragment()
             val bundle = Bundle().apply {

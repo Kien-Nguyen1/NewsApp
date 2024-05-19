@@ -24,4 +24,4 @@ data class NewsResponseItem(
     @SerializedName("title")
     @Expose
     val title: String? = null
-): Serializable
+) : Serializable

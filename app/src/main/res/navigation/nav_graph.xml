@@ -25,7 +25,9 @@
         android:label="Article">
         <argument
             android:name="article"
-            app:argType="com.example.newsapp.models.NewsResponseItem" />
+            app:argType="com.example.newsapp.models.NewsResponseItem"
+            android:defaultValue="@null"
+            app:nullable="true" />
     </fragment>
 
     <fragment
