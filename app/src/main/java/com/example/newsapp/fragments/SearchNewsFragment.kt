@@ -1,35 +1,41 @@
 package com.example.newsapp.fragments
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AbsListView
+import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.newsapp.R
 import com.example.newsapp.activities.MainActivity
 import com.example.newsapp.adapter.NewsAdapter
 import com.example.newsapp.databinding.FragmentSearchNewsBinding
-import com.example.newsapp.util.Constants.Companion.QUERY_PAGE_SIZE
+import com.example.newsapp.util.Resource
 import com.example.newsapp.viewmodels.NewsViewModel
-import kotlinx.coroutines.Job
 
 class SearchNewsFragment : Fragment(R.layout.fragment_search_news) {
 
     private lateinit var binding: FragmentSearchNewsBinding
     private lateinit var newsViewModel: NewsViewModel
     private lateinit var newsAdapter: NewsAdapter
+    private var isLoading = false
+    private var isLastPage = false
+    private var isScrolling = false
 
-    var isError = false
-    var isLoading = false
-    var isLastPage = false
-    var isScrolling = false
+    private val searchHandler = Handler(Looper.getMainLooper())
+    private var searchRunnable: Runnable? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?,
+        savedInstanceState: Bundle?
     ): View? {
         binding = FragmentSearchNewsBinding.inflate(inflater, container, false)
         return binding.root
@@ -38,97 +44,60 @@ class SearchNewsFragment : Fragment(R.layout.fragment_search_news) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         newsViewModel = (activity as MainActivity).newsViewModel
-        setUpRecycleView()
 
-//        newsAdapter.setOnClickListener {
-//            val bundle = Bundle().apply {
-//                putSerializable("article", it)
-//            }
-//            findNavController().navigate(R.id.action_searchNewsFragment_to_articleFragment, bundle)
-//        }
+        setUpRecyclerView()
 
-        var job : Job ?= null
-//        binding.edtSearchNews.addTextChangedListener { editable ->
-//            job?.cancel()
-//            job = MainScope().launch {
-//                delay(SEARCH_NEWS_TIME_DELAY)
-//                editable?.let {
-//                    if (editable.toString().isNotEmpty())
-//                    {
-//                        newsViewModel.searchNews(editable.toString())
-//                    }
-//                }
-//            }
-//        }
+        binding.edtSearchNews.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
-//        newsViewModel.searchNews.observe(viewLifecycleOwner, Observer { response ->
-//            when(response) {
-//                is Resource.Success -> {
-//                    hideProgressBar()
-//                    hideErrorMessage()
-//                    response.data?.let { newsResponse ->
-//                        newsAdapter.differ.submitList(newsResponse.articles.toList())
-//                        val totalPages = newsResponse.totalResults / QUERY_PAGE_SIZE + 2
-//                        isLastPage = newsViewModel.searchNewsPage == totalPages
-//                        if (isLastPage)
-//                        {
-//                            binding.rvSearchNews.setPadding(0, 0, 0, 0)
-//                        }
-//                    }
-//                }
-//                is Resource.Error -> {
-//                    hideProgressBar()
-//                    response.message?.let { message ->
-//                        Toast.makeText(activity, "An Error Occurred: $message", Toast.LENGTH_SHORT).show()
-//                        showErrorMessage(message)
-//                    }
-//                }
-//                is Resource.Loading -> {
-//                    showProgressBar()
-//                }
-//            }
-//        })
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                searchRunnable?.let { searchHandler.removeCallbacks(it) }
+            }
 
-//        binding.itemErrorMessageSearchNews.apply {
-//            btnRetry.setOnClickListener {
-//                if (binding.edtSearchNews.text.toString().isNotEmpty())
-//                {
-//                    newsViewModel.searchNews(binding.edtSearchNews.text.toString())
-//                }
-//                else
-//                {
-//                    hideErrorMessage()
-//                }
-//            }
-//        }
+            override fun afterTextChanged(s: Editable?) {
+                val query = s.toString()
+                searchRunnable = Runnable {
+                    if (query.isNotEmpty()) {
+                        newsAdapter.differ.submitList(emptyList()) // Xóa danh sách hiện tại khi bắt đầu tìm kiếm mới
+                        newsViewModel.searchNews(query)
+                    }
+                }
+                searchHandler.postDelayed(searchRunnable!!, 500) // Đặt khoảng thời gian debounce là 500ms
+            }
+        })
+
+        newsViewModel.searchResults.observe(viewLifecycleOwner, Observer { response ->
+            when (response) {
+                is Resource.Success -> {
+                    hideProgressBar()
+                    response.data?.let { newsResponse ->
+                        newsAdapter.differ.submitList(newsResponse.articles)
+                        isLastPage = newsResponse.articles.size < 20
+                    }
+                }
+                is Resource.Error -> {
+                    hideProgressBar()
+                    response.message?.let { message ->
+                        Toast.makeText(activity, "An error occurred: $message", Toast.LENGTH_LONG).show()
+                    }
+                }
+                is Resource.Loading -> {
+                    showProgressBar()
+                }
+            }
+        })
     }
 
-    private fun showProgressBar() {
-        binding.pbSearchNews.visibility = View.VISIBLE
-        isLoading = true
-    }
-
-    private fun showErrorMessage(message: String) {
-        binding.itemErrorMessageSearchNews.apply {
-            View.VISIBLE
-            tvErrorMessage.text = message
+    private fun setUpRecyclerView() {
+        newsAdapter = NewsAdapter()
+        binding.rvSearchNews.apply {
+            adapter = newsAdapter
+            layoutManager = LinearLayoutManager(activity)
+            addOnScrollListener(this@SearchNewsFragment.scrollListener)
         }
-        isError = true
     }
 
-    private fun hideErrorMessage() {
-        binding.itemErrorMessageSearchNews.apply {
-            View.INVISIBLE
-        }
-        isError = false
-    }
-
-    private fun hideProgressBar() {
-        binding.pbSearchNews.visibility = View.INVISIBLE
-        isLoading = false
-    }
-
-    private val scrollListener = object : RecyclerView.OnScrollListener(){
+    private val scrollListener = object : RecyclerView.OnScrollListener() {
         override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
             super.onScrolled(recyclerView, dx, dy)
 
@@ -137,48 +106,33 @@ class SearchNewsFragment : Fragment(R.layout.fragment_search_news) {
             val visibleItemCount = layoutManager.childCount
             val totalItemCount = layoutManager.itemCount
 
-            val isNoError = !isError
             val isNotLoadingAndNotLastPage = !isLoading && !isLastPage
             val isAtLastItem = firstVisibleItemPosition + visibleItemCount >= totalItemCount
             val isNotAtBeginning = firstVisibleItemPosition >= 0
-            val isTotalMoreThanVisible = totalItemCount >= QUERY_PAGE_SIZE
-            val shouldPaginate = isNoError && isNotAtBeginning && isNotLoadingAndNotLastPage &&
-                    isAtLastItem && isTotalMoreThanVisible && isScrolling
+            val isTotalMoreThanVisible = totalItemCount >= 20
+            val shouldPaginate = isNotLoadingAndNotLastPage && isAtLastItem && isNotAtBeginning && isTotalMoreThanVisible && isScrolling
 
-//            if (shouldPaginate)
-//            {
-//                newsViewModel.searchNews(binding.edtSearchNews.text.toString())
-//                isScrolling = false
-//            }
+            if (shouldPaginate) {
+                newsViewModel.loadMoreSearchResults()
+                isScrolling = false
+            }
         }
 
         override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
             super.onScrollStateChanged(recyclerView, newState)
-
-            if (newState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL)
-            {
+            if (newState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL) {
                 isScrolling = true
             }
         }
     }
 
-    private fun setUpRecycleView() {
-        newsAdapter = NewsAdapter()
-        
-//        newsAdapter.setOnClickListener { article ->
-//            if (article != null)
-//            {
-//                val bundle = Bundle().apply {
-//                    putSerializable("article", article)
-//                }
-//                findNavController().navigate(R.id.action_searchNewsFragment_to_articleFragment, bundle)
-//            }
-//        }
+    private fun showProgressBar() {
+        isLoading = true
+        binding.pbSearchNews.visibility = View.VISIBLE
+    }
 
-        binding.rvSearchNews.apply {
-            adapter = newsAdapter
-            layoutManager = LinearLayoutManager(activity)
-            addOnScrollListener(this@SearchNewsFragment.scrollListener)
-        }
+    private fun hideProgressBar() {
+        isLoading = false
+        binding.pbSearchNews.visibility = View.GONE
     }
 }

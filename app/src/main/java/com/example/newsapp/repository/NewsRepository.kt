@@ -9,7 +9,7 @@ class NewsRepository(private val database: ArticleDatabase, private val api: New
     suspend fun getNews(category: String, page: Int, pageSize: Int) =
         api.getNews(category, page, pageSize)
 
-    suspend fun searchNews(query: String) = api.searchNews(query)
+    suspend fun searchNews(query: String, page: Int, pageSize: Int) = api.searchNews(query, page, pageSize)
 
     suspend fun saveArticle(article: NewsResponseItem) = database.articleDao().saveArticle(article)
 

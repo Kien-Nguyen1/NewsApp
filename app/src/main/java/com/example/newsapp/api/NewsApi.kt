@@ -15,8 +15,10 @@ interface NewsApi {
         @Query("pageSize") pageSize: Int = 20
     ): Response<NewsResponse>
 
-    @GET("search.php")
+    @GET("search_news.php")
     suspend fun searchNews(
-        @Query("query") query: String
+        @Query("query") query: String,
+        @Query("page") page: Int = 1,
+        @Query("pageSize") pageSize: Int = 20
     ): Response<NewsResponse>
 }
