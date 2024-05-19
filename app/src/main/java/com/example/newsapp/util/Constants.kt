@@ -6,6 +6,7 @@ class Constants {
         const val BASE_URL_SEARCH = "https://newsapi.org"
         const val SEARCH_NEWS_TIME_DELAY = 500L
         const val QUERY_PAGE_SIZE = 20
+        const val KEY_ARTICLE = "KEY_ARTICLE"
 
         const val BASE_URL = "http://192.168.1.3/android_webservice/" //cho emulator
 //        const val BASE_URL = "http://192.168.1.10/android_webservice/" //cho emulator

@@ -7,11 +7,13 @@ import android.view.ViewGroup
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.newsapp.R
 import com.example.newsapp.activities.MainActivity
 import com.example.newsapp.adapter.NewsAdapter
 import com.example.newsapp.databinding.FragmentNewsBinding
+import com.example.newsapp.util.Constants.Companion.KEY_ARTICLE
 import com.example.newsapp.util.Resource
 import com.example.newsapp.viewmodels.NewsViewModel
 
@@ -70,6 +72,16 @@ class NewsFragment : Fragment(R.layout.fragment_news) {
                 }
             }
         })
+
+        newsAdapter.setOnClickListener {
+            val bundle = Bundle().apply {
+                putSerializable(KEY_ARTICLE, it)
+            }
+            findNavController().navigate(
+                R.id.action_breakingNewsFragment_to_articleFragment,
+                bundle
+            )
+        }
     }
 
     private fun setUpRecyclerView() {

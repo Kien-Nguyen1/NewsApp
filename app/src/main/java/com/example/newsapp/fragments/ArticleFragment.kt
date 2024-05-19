@@ -6,10 +6,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebViewClient
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.navArgs
 import com.example.newsapp.R
 import com.example.newsapp.activities.MainActivity
 import com.example.newsapp.databinding.FragmentArticleBinding
-import com.example.newsapp.models.NewsResponseItem
 import com.example.newsapp.viewmodels.NewsViewModel
 import com.google.android.material.snackbar.Snackbar
 
@@ -17,7 +17,7 @@ class ArticleFragment : Fragment(R.layout.fragment_article) {
 
     private lateinit var binding: FragmentArticleBinding
     private lateinit var newsViewModel: NewsViewModel
-    private lateinit var article: NewsResponseItem
+    val args: ArticleFragmentArgs by navArgs()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -31,11 +31,7 @@ class ArticleFragment : Fragment(R.layout.fragment_article) {
         super.onViewCreated(view, savedInstanceState)
         newsViewModel = (activity as MainActivity).newsViewModel
 
-        // Sử dụng Safe Args để lấy article
-        arguments?.let {
-            val args = ArticleFragmentArgs.fromBundle(it)
-            article = args.article
-        }
+        val article = args.article
 
         binding.webViewArticle.apply {
             webViewClient = WebViewClient()

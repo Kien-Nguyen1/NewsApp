@@ -14,6 +14,7 @@ import com.example.newsapp.R
 import com.example.newsapp.activities.MainActivity
 import com.example.newsapp.adapter.NewsAdapter
 import com.example.newsapp.databinding.FragmentSavedNewsBinding
+import com.example.newsapp.util.Constants.Companion.KEY_ARTICLE
 import com.example.newsapp.viewmodels.NewsViewModel
 import com.google.android.material.snackbar.Snackbar
 
@@ -39,9 +40,12 @@ class SavedNewsFragment : Fragment(R.layout.fragment_saved_news) {
 
         newsAdapter.setOnClickListener {
             val bundle = Bundle().apply {
-                putSerializable("article", it)
+                putSerializable(KEY_ARTICLE, it)
             }
-            findNavController().navigate(R.id.action_savedNewsFragment_to_articleFragment, bundle)
+            findNavController().navigate(
+                R.id.action_savedNewsFragment_to_articleFragment,
+                bundle
+            )
         }
 
         val itemTouchHelperCallback = object : ItemTouchHelper.SimpleCallback(

@@ -28,6 +28,10 @@ class BreakingNewsFragment: Fragment(R.layout.breaking_news_fragment) {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         newsViewModel = (activity as MainActivity).newsViewModel
+        setUpViewPager()
+    }
+
+    fun setUpViewPager() {
         viewPagerAdapter = ViewPagerAdapter(childFragmentManager)
         binding.viewPager.adapter = viewPagerAdapter
         binding.tabLayout.setupWithViewPager(binding.viewPager)
