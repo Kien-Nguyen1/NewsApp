@@ -6,10 +6,11 @@ import com.example.newsapp.models.NewsResponseItem
 
 class NewsRepository(private val database: ArticleDatabase, private val api: NewsApi) {
 
-    suspend fun getNews(category: String, page: Int, pageSize: Int) =
+    suspend fun getNews(category: String, page: Int = 1, pageSize: Int = Int.MAX_VALUE) =
         api.getNews(category, page, pageSize)
 
-    suspend fun searchNews(query: String, page: Int, pageSize: Int) = api.searchNews(query, page, pageSize)
+    suspend fun searchNews(query: String, page: Int = 1, pageSize: Int = Int.MAX_VALUE) =
+        api.searchNews(query, page, pageSize)
 
     suspend fun saveArticle(article: NewsResponseItem) = database.articleDao().saveArticle(article)
 

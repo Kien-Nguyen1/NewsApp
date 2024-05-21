@@ -9,7 +9,7 @@ class Constants {
         const val KEY_ARTICLE = "KEY_ARTICLE"
         const val ARG_CATEGORY = "category"
 
-        const val BASE_URL = "http://192.168.1.3/android_webservice/" //cho emulator
+        const val BASE_URL = "http://192.168.1.15/android_webservice/" //cho emulator
 //        const val BASE_URL = "http://192.168.1.10/android_webservice/" //cho emulator
         // Nếu sử dụng thiết bị thật, hãy thay thế bằng địa chỉ IP cục bộ của máy bạn
         // private const val BASE_URL = "http://192.168.1.xxx/android_webservice/"

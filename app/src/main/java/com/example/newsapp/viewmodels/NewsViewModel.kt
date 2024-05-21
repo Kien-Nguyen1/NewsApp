@@ -14,7 +14,6 @@ import com.example.newsapp.activities.NewsApplication
 import com.example.newsapp.models.NewsResponse
 import com.example.newsapp.models.NewsResponseItem
 import com.example.newsapp.repository.NewsRepository
-import com.example.newsapp.util.Constants
 import com.example.newsapp.util.Resource
 import kotlinx.coroutines.launch
 import retrofit2.Response
@@ -37,9 +36,6 @@ class NewsViewModel(
     val universalNews: MutableLiveData<Resource<NewsResponse>> = MutableLiveData()
     val searchResults: MutableLiveData<Resource<NewsResponse>> = MutableLiveData()
 
-    private var currentSearchPage = 1
-    private var currentSearchQuery: String? = null
-
     val newsResponses = mapOf(
         "Business" to businessNews,
         "Culture" to cultureNews,
@@ -53,16 +49,8 @@ class NewsViewModel(
         "Universal" to universalNews
     )
 
-    private val newsPages = mutableMapOf<String, Int>()
-
-    init {
-        newsResponses.keys.forEach { category ->
-            newsPages[category] = 1
-        }
-    }
-
-    fun getNews(category: String, page: Int, pageSize: Int) = viewModelScope.launch {
-        safeNewsCall(category, page, pageSize)
+    fun getNews(category: String) = viewModelScope.launch {
+        safeNewsCall(category)
     }
 
     val savedArticles: LiveData<List<NewsResponseItem>> = newsRepository.getSavedArticles()
@@ -75,14 +63,12 @@ class NewsViewModel(
         newsRepository.deleteArticle(article)
     }
 
-    fun searchNews(query: String, page: Int = 1, pageSize: Int = 20) = viewModelScope.launch {
-        currentSearchQuery = query
-        currentSearchPage = page
+    fun searchNews(query: String) = viewModelScope.launch {
         searchResults.postValue(Resource.Loading())
 
         try {
             if (hasInternetConnection()) {
-                val response = newsRepository.searchNews(query, page, pageSize)
+                val response = newsRepository.searchNews(query)
                 searchResults.postValue(handleSearchNewsResponse(response))
             } else {
                 searchResults.postValue(Resource.Error("No Internet Connection!"))
@@ -96,12 +82,12 @@ class NewsViewModel(
         }
     }
 
-    private suspend fun safeNewsCall(category: String, page: Int, pageSize: Int) {
+    private suspend fun safeNewsCall(category: String) {
         newsResponses[category]?.postValue(Resource.Loading())
         try {
             if (hasInternetConnection()) {
-                val response = newsRepository.getNews(category, page, pageSize)
-                newsResponses[category]?.postValue(handleNewsResponse(category, response))
+                val response = newsRepository.getNews(category)
+                newsResponses[category]?.postValue(handleNewsResponse(response))
             } else {
                 newsResponses[category]?.postValue(Resource.Error("No Internet Connection!"))
             }
@@ -114,15 +100,10 @@ class NewsViewModel(
         }
     }
 
-    private fun handleNewsResponse(category: String, response: Response<NewsResponse>): Resource<NewsResponse>? {
+    private fun handleNewsResponse(response: Response<NewsResponse>): Resource<NewsResponse>? {
         if (response.isSuccessful) {
             response.body()?.let { resultResponse ->
-                val currentPage = newsPages[category] ?: 1
-                newsPages[category] = currentPage + 1
-                val oldArticles = newsResponses[category]?.value?.data?.articles ?: mutableListOf()
-                val newArticles = resultResponse.articles
-                oldArticles.addAll(newArticles)
-                return Resource.Success(resultResponse.copy(articles = oldArticles))
+                return Resource.Success(resultResponse)
             }
         }
         return Resource.Error(response.message())
@@ -131,10 +112,7 @@ class NewsViewModel(
     private fun handleSearchNewsResponse(response: Response<NewsResponse>): Resource<NewsResponse> {
         if (response.isSuccessful) {
             response.body()?.let { resultResponse ->
-                val oldArticles = searchResults.value?.data?.articles ?: mutableListOf()
-                val newArticles = resultResponse.articles
-                oldArticles.addAll(newArticles)
-                return Resource.Success(resultResponse.copy(articles = oldArticles))
+                return Resource.Success(resultResponse)
             }
         }
         return Resource.Error(response.message())
@@ -163,32 +141,5 @@ class NewsViewModel(
             }
         }
         return false
-    }
-
-    fun loadMoreNews(category: String) = viewModelScope.launch {
-        val page = newsPages[category] ?: 1
-        safeNewsCall(category, page, Constants.QUERY_PAGE_SIZE)
-    }
-
-    fun loadMoreSearchResults() = viewModelScope.launch {
-        currentSearchQuery?.let { query ->
-            currentSearchPage++
-            searchResults.postValue(Resource.Loading())
-
-            try {
-                if (hasInternetConnection()) {
-                    val response = newsRepository.searchNews(query, currentSearchPage, 20)
-                    searchResults.postValue(handleSearchNewsResponse(response))
-                } else {
-                    searchResults.postValue(Resource.Error("No Internet Connection!"))
-                }
-            } catch (t: Throwable) {
-                Log.e("NewsViewModel", "Error fetching news", t)
-                when (t) {
-                    is IOException -> searchResults.postValue(Resource.Error("Network Failure!"))
-                    else -> searchResults.postValue(Resource.Error("Conversion Error!"))
-                }
-            }
-        }
     }
 }

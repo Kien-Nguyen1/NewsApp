@@ -113,7 +113,7 @@ class SearchNewsFragment : Fragment(R.layout.fragment_search_news) {
             val shouldPaginate = isNotLoadingAndNotLastPage && isAtLastItem && isNotAtBeginning && isTotalMoreThanVisible && isScrolling
 
             if (shouldPaginate) {
-                newsViewModel.loadMoreSearchResults()
+//                newsViewModel.loadMoreSearchResults()
                 isScrolling = false
             }
         }
