@@ -63,12 +63,16 @@ class NewsViewModel(
         newsRepository.deleteArticle(article)
     }
 
-    fun searchNews(query: String) = viewModelScope.launch {
+    fun searchNews(keyword: String) = viewModelScope.launch {
         searchResults.postValue(Resource.Loading())
 
         try {
             if (hasInternetConnection()) {
-                val response = newsRepository.searchNews(query)
+                val response = newsRepository.searchNews(keyword)
+                if (response.isSuccessful) {
+                    val jsonResponse = response.body()
+                    Log.d("NewsViewModel", "Response JSON: $jsonResponse")
+                }
                 searchResults.postValue(handleSearchNewsResponse(response))
             } else {
                 searchResults.postValue(Resource.Error("No Internet Connection!"))
