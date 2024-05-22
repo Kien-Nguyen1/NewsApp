@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AbsListView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
@@ -24,7 +23,6 @@ class SavedNewsFragment : Fragment(R.layout.fragment_saved_news) {
     private lateinit var binding: FragmentSavedNewsBinding
     private lateinit var newsViewModel: NewsViewModel
     private lateinit var newsAdapter: NewsAdapter
-    private var isLoading = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -80,11 +78,14 @@ class SavedNewsFragment : Fragment(R.layout.fragment_saved_news) {
         }
 
         newsViewModel.savedArticles.observe(viewLifecycleOwner, Observer { articles ->
-            hideProgressBar()
             newsAdapter.differ.submitList(articles)
-        })
 
-        showProgressBar()
+            if(articles.isNullOrEmpty()) {
+                binding.tvEmpty.visibility = View.VISIBLE
+            } else {
+                binding.tvEmpty.visibility = View.GONE
+            }
+        })
     }
 
     private fun setUpRecyclerView() {
@@ -92,48 +93,6 @@ class SavedNewsFragment : Fragment(R.layout.fragment_saved_news) {
         binding.rvSavedNews.apply {
             adapter = newsAdapter
             layoutManager = LinearLayoutManager(activity)
-            addOnScrollListener(this@SavedNewsFragment.scrollListener)
         }
-    }
-
-    private val scrollListener = object : RecyclerView.OnScrollListener() {
-        override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-            super.onScrolled(recyclerView, dx, dy)
-
-            val layoutManager = recyclerView.layoutManager as LinearLayoutManager
-            val firstVisibleItemPosition = layoutManager.findFirstVisibleItemPosition()
-            val visibleItemCount = layoutManager.childCount
-            val totalItemCount = layoutManager.itemCount
-
-            val isNotLoadingAndNotLastPage = !isLoading
-            val isAtLastItem = firstVisibleItemPosition + visibleItemCount >= totalItemCount
-            val isNotAtBeginning = firstVisibleItemPosition >= 0
-            val isTotalMoreThanVisible = totalItemCount >= 20
-            val shouldPaginate = isNotLoadingAndNotLastPage && isAtLastItem && isNotAtBeginning && isTotalMoreThanVisible
-
-            if (shouldPaginate) {
-                // Hiện tại không cần tải thêm dữ liệu vì dữ liệu là cục bộ
-                // Nếu có dữ liệu từ server thì có thể gọi hàm loadMoreArticles() ở đây
-            }
-        }
-
-        override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-            super.onScrollStateChanged(recyclerView, newState)
-            if (newState == AbsListView.OnScrollListener.SCROLL_STATE_TOUCH_SCROLL) {
-                isLoading = true
-            }
-        }
-    }
-
-    private fun showProgressBar() {
-        isLoading = true
-//        binding.progressBar.visibility = View.VISIBLE
-        binding.rvSavedNews.visibility = View.GONE
-    }
-
-    private fun hideProgressBar() {
-        isLoading = false
-//        binding.progressBar.visibility = View.GONE
-        binding.rvSavedNews.visibility = View.VISIBLE
     }
 }

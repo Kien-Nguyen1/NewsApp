@@ -53,12 +53,16 @@ class SearchNewsFragment : Fragment(R.layout.fragment_search_news) {
 
             override fun afterTextChanged(s: Editable?) {
                 val query = s.toString()
-                searchRunnable = Runnable {
-                    if (query.isNotEmpty()) {
-                        newsViewModel.searchNews(query)
+                if (query.isEmpty()) {
+                    searchNewsAdapter.differ.submitList(emptyList())
+                } else {
+                    searchRunnable = Runnable {
+                        if (query.isNotEmpty()) {
+                            newsViewModel.searchNews(query)
+                        }
                     }
+                    searchHandler.postDelayed(searchRunnable!!, Constants.SEARCH_NEWS_TIME_DELAY)
                 }
-                searchHandler.postDelayed(searchRunnable!!, 500)
             }
         })
 
@@ -103,10 +107,16 @@ class SearchNewsFragment : Fragment(R.layout.fragment_search_news) {
     }
 
     private fun showProgressBar() {
-        binding.pbSearchNews.visibility = View.VISIBLE
+        binding.shimmerLoading.visibility = View.VISIBLE
     }
 
     private fun hideProgressBar() {
-        binding.pbSearchNews.visibility = View.GONE
+        binding.shimmerLoading.visibility = View.GONE
+    }
+
+    override fun onStop() {
+        super.onStop()
+        searchNewsAdapter.differ.submitList(emptyList())
+        binding.edtSearchNews.text.clear()
     }
 }

@@ -13,18 +13,24 @@ import com.example.newsapp.R
 import com.example.newsapp.activities.MainActivity
 import com.example.newsapp.adapter.NewsAdapter
 import com.example.newsapp.databinding.FragmentNewsBinding
+import com.example.newsapp.util.Constants.Companion.ARG_CATEGORY
 import com.example.newsapp.util.Constants.Companion.KEY_ARTICLE
 import com.example.newsapp.util.Resource
 import com.example.newsapp.viewmodels.NewsViewModel
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class NewsFragment : Fragment(R.layout.fragment_news) {
-
     private lateinit var binding: FragmentNewsBinding
     private lateinit var newsViewModel: NewsViewModel
     private lateinit var newsAdapter: NewsAdapter
+    private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     companion object {
-        const val ARG_CATEGORY = "category"
 
         fun newInstance(category: String): NewsFragment {
             val fragment = NewsFragment()
@@ -51,11 +57,12 @@ class NewsFragment : Fragment(R.layout.fragment_news) {
         setUpRecyclerView()
 
         val category = arguments?.getString(ARG_CATEGORY) ?: "Universal"
-        newsViewModel.getNews(category)
+        getData(category)
 
         newsViewModel.newsResponses[category]?.observe(viewLifecycleOwner, Observer { response ->
             when (response) {
                 is Resource.Success -> {
+                    binding.tvEmpty.visibility = View.GONE
                     hideProgressBar()
                     response.data?.let { newsResponse ->
                         newsAdapter.differ.submitList(newsResponse.articles)
@@ -65,13 +72,17 @@ class NewsFragment : Fragment(R.layout.fragment_news) {
                     hideProgressBar()
                     response.message?.let { message ->
                         Toast.makeText(activity, "An error occurred: $message", Toast.LENGTH_LONG).show()
+                        binding.tvEmpty.visibility = View.VISIBLE
                     }
                 }
                 is Resource.Loading -> {
+                    binding.tvEmpty.visibility = View.GONE
                     showProgressBar()
                 }
             }
         })
+
+        setUpSwipeRefreshLayout(category)
 
         newsAdapter.setOnClickListener {
             val bundle = Bundle().apply {
@@ -81,6 +92,20 @@ class NewsFragment : Fragment(R.layout.fragment_news) {
                 R.id.action_breakingNewsFragment_to_articleFragment,
                 bundle
             )
+        }
+    }
+
+    private fun setUpSwipeRefreshLayout(category: String) {
+        binding.swipeLayout.setOnRefreshListener {
+            coroutineScope.launch {
+                showProgressBar()
+                delay(500L)
+                withContext(Dispatchers.Main) {
+                    hideProgressBar()
+                    binding.swipeLayout.isRefreshing = false
+                    getData(category)
+                }
+            }
         }
     }
 
@@ -94,10 +119,26 @@ class NewsFragment : Fragment(R.layout.fragment_news) {
     }
 
     private fun showProgressBar() {
-        binding.progressBar.visibility = View.VISIBLE
+        binding.recyclerView.visibility = View.GONE
+        binding.shimmerLoading.visibility = View.VISIBLE
     }
 
     private fun hideProgressBar() {
-        binding.progressBar.visibility = View.GONE
+        binding.recyclerView.visibility = View.VISIBLE
+        binding.shimmerLoading.visibility = View.GONE
+    }
+
+    private fun getData(category: String) {
+        coroutineScope.launch {
+            delay(500L)
+            withContext(Dispatchers.IO) {
+                newsViewModel.getNews(category)
+            }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        coroutineScope.cancel()
     }
 }
